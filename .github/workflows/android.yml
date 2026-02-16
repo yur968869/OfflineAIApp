@@ -11,14 +11,27 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install JDK
+    # Java JDK
+    - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Install Gradle
-      run: sudo apt-get update && sudo apt-get install -y gradle
+    # Install Android SDK tools
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        packages: "platform-tools,build-tools;34.0.0,platforms;android-34"
+
+    # Create local.properties so Gradle finds SDK
+    - name: Create local.properties
+      run: |
+        echo "sdk.dir=$HOME/android-sdk" > app/local.properties
+        echo "ndk.dir=$HOME/android-sdk/ndk/25.2.9519653" >> app/local.properties
+
+    - name: Grant execute permission for Gradle
+      run: chmod +x gradlew || true
 
     - name: Build APK
-      run: gradle assembleRelease
+      run: ./gradlew assembleRelease
