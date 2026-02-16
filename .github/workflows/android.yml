@@ -11,13 +11,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up JDK
+    - name: Install JDK
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Install Gradle
+      run: sudo apt-get update && sudo apt-get install -y gradle
+
     - name: Build APK
-      run: |
-        chmod +x gradlew
-        ./gradlew assembleRelease
+      run: gradle assembleRelease
