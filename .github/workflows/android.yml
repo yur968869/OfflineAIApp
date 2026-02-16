@@ -1,4 +1,4 @@
-name: Build APK
+name: Android CI
 
 on:
   push:
@@ -9,29 +9,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    # Java JDK
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        distribution: 'temurin'
-        java-version: '17'
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
 
-    # Install Android SDK tools
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
-      with:
-        packages: "platform-tools,build-tools;34.0.0,platforms;android-34"
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-    # Create local.properties so Gradle finds SDK
-    - name: Create local.properties
-      run: |
-        echo "sdk.dir=$HOME/android-sdk" > app/local.properties
-        echo "ndk.dir=$HOME/android-sdk/ndk/25.2.9519653" >> app/local.properties
+      - name: Accept SDK Licenses
+        run: yes | sdkmanager --licenses
 
-    - name: Grant execute permission for Gradle
-      run: chmod +x gradlew || true
+      - name: Install Android SDK 32
+        run: |
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-32"
+          sdkmanager "build-tools;32.0.0"
 
-    - name: Build APK
-      run: ./gradlew assembleRelease
+      - name: Make Gradle Executable
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
